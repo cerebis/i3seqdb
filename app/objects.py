@@ -1,11 +1,10 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, Table
+from datetime import datetime
 
 # orm base class
 Base = declarative_base()
-
-
 
 
 class Sample(Base):
@@ -17,12 +16,17 @@ class Sample(Base):
     tables -- supported by alchemy
     """
     @staticmethod
-    def make(sample_type, kwargs):
-        sample_type = sample_type.lower()
-        if sample_type == 'microbe':
+    def make(sample_class, kwargs):
+        sample_class = sample_class.lower()
+        if sample_class == 'microbe':
+            # hack to remove the non-instance dict element
+            del kwargs['sample_class']
+            # this could be stored as a string and converted in the application
+            # to a datetime instance
+            kwargs['collection_date'] = datetime.strptime(kwargs['collection_date'], '%d/%m/%Y')
             return Microbe(**kwargs)
         else:
-            raise RuntimeError('unknown sample type [{}]'.format(sample_type))
+            raise RuntimeError('unknown sample type [{}]'.format(sample_class))
 
     __tablename__ = 'sample'
 
@@ -47,7 +51,6 @@ class Microbe(Sample):
     host = Column(String)
     isolation_source = Column(String)
     sample_type = Column(String)
-
 
 # many-to-many join tables
 

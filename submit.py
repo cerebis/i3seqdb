@@ -2,7 +2,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.objects import *
-import datetime as dt
 import argparse
 import pandas
 
@@ -20,20 +19,30 @@ if __name__ == '__main__':
     elif args.format == 'excel':
         table = pandas.read_excel(args.table)
     else:
-        raise RuntimeError('unknown table format')
+        raise RuntimeError('unknown table format [{}]'.format(args.format))
 
     print table
 
-    engine = create_engine('sqlite:///testdb')
+    # set up an sql file-based database
+    engine = create_engine('sqlite:///testdb', echo=True)
     Base.metadata.create_all(engine)
+
+    # open a session
     Session = sessionmaker(bind=engine)
     session = Session()
 
+    # currently this will duplicate instances. We need to read further on object identity
+    # handling within sqlalchemy.
     for ix, row in table.iterrows():
         try:
-            smpl = Sample.make(row.sample_type, row.to_dict())
+            smpl = Sample.make(row.sample_class, row.to_dict())
             session.add(smpl)
         except Exception as e:
             print e.message
 
+    # commit our changes
     session.commit()
+
+    # pull all rows from the database
+    for n, s in enumerate(session.query(Sample).all(), start=1):
+        print n, s.id, s.name
