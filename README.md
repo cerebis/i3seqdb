@@ -12,4 +12,4 @@
     - Datatables
 
 ## Design
-1. [UML of persistent classes](i3seqdb/i3db.xml)
+1. [UML of persistent classes](i3db.xml)
