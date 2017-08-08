@@ -1,4 +1,4 @@
-#Tracking and instrumentation of NGS
+# Tracking and instrumentation of NGS
 
 ## Initial planning
 1. Language
