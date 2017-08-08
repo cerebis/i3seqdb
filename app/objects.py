@@ -6,6 +6,8 @@ from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, Table
 Base = declarative_base()
 
 
+
+
 class Sample(Base):
     """
     Defined by the minimum required for submission at NCBI
@@ -14,6 +16,13 @@ class Sample(Base):
     table by default. Requirements such as non-null at the database level require individual
     tables -- supported by alchemy
     """
+    @staticmethod
+    def make(sample_type, kwargs):
+        sample_type = sample_type.lower()
+        if sample_type == 'microbe':
+            return Microbe(**kwargs)
+        else:
+            raise RuntimeError('unknown sample type [{}]'.format(sample_type))
 
     __tablename__ = 'sample'
 
