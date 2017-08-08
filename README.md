@@ -10,3 +10,6 @@
     - Bootstrap
     - WTForms
     - Datatables
+
+## Design
+1. [UML of persistent classes](i3seqdb/i3db.xml)
