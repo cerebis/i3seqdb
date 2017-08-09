@@ -2,6 +2,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.objects import *
+from datetime import datetime
 import argparse
 import pandas
 
@@ -16,8 +17,12 @@ if __name__ == '__main__':
 
     if args.format == 'csv':
         table = pandas.read_csv(args.table, sep=args.delim)
+        for s in table.iterrows():
+            if isinstance(s.collection_date, basestring):
+                s.collection_date = datetime.strptime(s.collection_date, '%d/%m/%Y')
+
     elif args.format == 'excel':
-        table = pandas.read_excel(args.table)
+        table = pandas.read_excel(args.table, encoding='ascii')
     else:
         raise RuntimeError('unknown table format [{}]'.format(args.format))
 
