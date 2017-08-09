@@ -1,9 +1,9 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, Table
-from datetime import datetime
+from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, Table, CheckConstraint
+import pandas
 
-# orm base class
+
 Base = declarative_base()
 
 
@@ -15,45 +15,103 @@ class Sample(Base):
     table by default. Requirements such as non-null at the database level require individual
     tables -- supported by alchemy
     """
-    @staticmethod
-    def make(sample_class, kwargs):
-        sample_class = sample_class.lower()
-        if sample_class == 'microbe':
-            # hack to remove the non-instance dict element
-            del kwargs['sample_class']
-            # this could be stored as a string and converted in the application
-            # to a datetime instance
-            kwargs['collection_date'] = datetime.strptime(kwargs['collection_date'], '%d/%m/%Y')
-            return Microbe(**kwargs)
-        else:
-            raise RuntimeError('unknown sample type [{}]'.format(sample_class))
-
     __tablename__ = 'sample'
 
     id = Column(Integer, primary_key=True)
 
-    name = Column(String)
-    organism = Column(String)
-    collection_date = Column(Date)
-    geo_loc_name = Column(String)
+    name = Column(String, nullable=False, unique=True)
+    organism = Column(String, nullable=False)
+    collection_date = Column(Date, nullable=False)
+    geo_loc_name = Column(String, nullable=False)
+    lat_lon = Column(String)
+    _type= Column(String)
 
     # simple one-to-many
     libraries = relationship('Library')
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'sample',
+        'polymorphic_on': _type
+    }
+
+    @staticmethod
+    def make(sample_class, kwargs):
+        """
+        Factory method for creating various subclasses of Sample.
+        :param sample_class: the subclass to create
+        :param kwargs: dict of fields, None/Nan fields will be removed.
+        :return: instance of requested class
+        """
+        cl = sample_class.lower()
+
+        # get rid of problematic elements before passing to constructor
+        del kwargs['sample_class']
+        for k in kwargs.keys():
+            if not kwargs[k] or pandas.isnull(kwargs[k]):
+                del kwargs[k]
+
+        if cl == 'microbe':
+            # this could be stored as a string and converted in the application
+            # to a datetime instance
+            return Microbe(**kwargs)
+        elif cl == 'metagenome':
+            return Metagenome(**kwargs)
+        elif cl == 'pathogen':
+            return Pathogen(**kwargs)
+        else:
+            raise RuntimeError('unknown sample type [{}]'.format(cl))
+
 
 
 class Microbe(Sample):
     """
     Inheritence example. For this simple single-table case, no additional id is required
     """
+    __tablename__ = 'microbe'
 
+    id = Column(Integer, ForeignKey('sample.id'), primary_key=True)
     strain = Column(String)
     isolate = Column(String)
     host = Column(String)
     isolation_source = Column(String)
-    sample_type = Column(String)
+    sample_type = Column(String, nullable=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'microbe'}
+    __table_args__ = (
+        CheckConstraint('strain is not null or isolate is not null', name='check1'),
+        CheckConstraint('host is not null or isolation_source is not null', name='check2'),
+    )
+
+
+class Pathogen(Sample):
+
+    __tablename__ = 'pathogen'
+
+    id = Column(Integer, ForeignKey('sample.id'), primary_key=True)
+    strain = Column(String)
+    isolate = Column(String)
+    collected_by = Column(String)
+    isolation_source = Column(String)
+
+    __mapper_args__ = {'polymorphic_identity': 'pathogen'}
+    __table_args__ = (
+        CheckConstraint('strain is not null or isolate is not null', name='check1'),
+    )
+
+class Metagenome(Sample):
+
+    __tablename__ = 'metagenome'
+
+    id = Column(Integer, ForeignKey('sample.id'), primary_key=True)
+    host = Column(String)
+    isolation_source = Column(String)
+
+    __mapper_args__ = {'polymorphic_identity': 'metagenome'}
+    __table_args__ = (
+        CheckConstraint('host is not null or isolation_source is not null', name='check1'),
+    )
 
 # many-to-many join tables
-
 pool_library_table = Table('pool_library', Base.metadata,
                            Column('pool_id', Integer, ForeignKey('pool.id')),
                            Column('library_id', Integer, ForeignKey('library.id')))

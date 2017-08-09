@@ -29,7 +29,7 @@ if __name__ == '__main__':
     print table
 
     # set up an sql file-based database
-    engine = create_engine('sqlite:///testdb', echo=True)
+    engine = create_engine('sqlite:///app/testdb', echo=True)
     Base.metadata.create_all(engine)
 
     # open a session
