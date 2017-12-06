@@ -52,7 +52,7 @@ def run_custom_protocol(
 
     # macro commands like .distribute() make writing long sequences easier:
     # distribute ForwardPrimerF1 solution to the wells
-    p200.distribute(22.5, F0, F0_wells, disposal_vol=0, touch_tip=True, blow_out=False)
+    p200.distribute(22.5, F0, F0_wells, disposal_vol=0, blow_out=False)
     # distribute ForwardPrimerF1 solution to the wells
     p200.distribute(22.5, F1, F1_wells, disposal_vol=0, blow_out=False)
     # distribute ForwardPrimerF1 solution to the wells
