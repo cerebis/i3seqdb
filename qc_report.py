@@ -8,18 +8,17 @@ import os
 ###input_file='/shared/homes/140837/ref/W_assembly/W_1_B11.shovill.log'
 
 input_directory=sys.argv[1]
-#print input_directory
+
 dict={}
 genome_size=5000000
 
 ##dict has the sample_name as key.
 ##dict[key][0]=number of raw bases
 ##dict[key][1]=coverage
-##dict[key][2]=number of S from GFF file
-##dict[key][3]=number of > from fasta file
-##dict[key][4]=nt used
+##dict[key][2]=number of > from fasta file
+##dict[key][3]=nt used
 print
-print "sample_name", "raw_nt", "coverage", "Scaffold_number", "contigs", "nt_used", "estimated_coverage", "corrected_coveraged"
+print("sample_name", "raw_nt", "coverage", "contigs", "nt_used", "estimated_coverage", "corrected_coveraged")
 
 
 for file in os.listdir(input_directory):
@@ -29,48 +28,37 @@ for file in os.listdir(input_directory):
 	if sample_name in dict:
 		pass
 	else:
-		dict[sample_name]=[0,1,2,3,4,5,6]
+		dict[sample_name]=[0,1,2,3,4,5]
 	if type=='shovill':
-                with open(fullpath, 'r') as f:
-#                       print f
-                        for line in f.readlines():
-#                               print line
-                                if 'Read stats: total_bp =' in line:
-#                                       print line
-                                        raw_nt=int(line.split()[4])
+		with open(fullpath, 'r') as f:
+			#print f
+			for line in f.readlines():
+				#print line
+				if 'Read stats: total_bp =' in line:
+					#print(line)
+					raw_nt=int(line.split()[5])
 #                                       print raw_nt
-                                        coverage=raw_nt/genome_size
+					coverage=int(raw_nt/genome_size)
 					dict[sample_name][0]=raw_nt
-                                        dict[sample_name][1]=coverage
+					dict[sample_name][1]=coverage
 				if 'Estimated sequencing depth:' in line:
 #                                       print line
-                                        estimated_coverage=line.split()[3]
-                                        dict[sample_name][5]=estimated_coverage
-
-	if tail=='gfa':
-                f=open(fullpath,'r').read()
-		count=f.count('S')
-		dict[sample_name][2]=count
-	if tail=='fa':
-		f=open(fullpath,'r').read()
-		count=f.count('>')
-		dict[sample_name][3]=count
-
-	if type=='trimmomatic':
-		with open(fullpath, 'r') as f:
-#                       print f
-                        for line in f.readlines():
-#                               print line
-                                if 'Both Surviving:' in line:
+					estimated_coverage=line.split()[4]
+					dict[sample_name][4]=estimated_coverage
+				if 'Both Surviving:' in line:
 #                                       print line
-                                        percentage_read_used=[float(s) for s in re.findall(r'-?\d+\.?\d*',line)][2]
+					percentage_read_used=[float(s) for s in re.findall(r'-?\d+\.?\d*',line)][2]
 #                                       print percentage_read_used
-                                        nt_used=int(percentage_read_used*raw_nt/100)
-                                        dict[sample_name][4]=nt_used
-					dict[sample_name][6]=(dict[sample_name][1]*percentage_read_used/100)
+					nt_used=int(percentage_read_used*raw_nt/100)
+					dict[sample_name][3]=nt_used
+					dict[sample_name][5]=int((dict[sample_name][1]*percentage_read_used/100))
+				if 'It contains' in line:
+#                                       print line
+					contigs=[int(s) for s in re.findall(r'-?\d+\.?\d*',line)][0]
+					dict[sample_name][2]=contigs
 
-for key, value in dict.iteritems():
-	print key, value[0],value[1],value[2],value[3],value[4],value[5], value[6]
+for key, value in dict.items():
+	print(key, value[0],value[1],value[2],value[3],value[4],value[5])
 print
 
 ##############################################################################
