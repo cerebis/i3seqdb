@@ -1,10 +1,10 @@
 from opentrons import robot,labware, instruments
 import math
 
-###This has been tested and worked well with 10 ul tips, when pipetting with 10 ul tip onlyself.
-##Do not use two pipettes at the same time at the moment to avoid tips crashing the plateself.
+###This has been tested and worked well with 10 ul tips, when pipetting with 10 ul tip only.
+##Do not use two pipettes at the same time at the moment to avoid tips crashing the plate.
 
-##At the moment, the robot gets the location and the volume of the samples from the entry belowself.
+##At the moment, the robot gets the location and the volume of the samples from the entry below.
 ##The robot will go through the location in row and column manners, not random.
 ##The reason is if things happen, and the robot needs to stop, I can manually start pipetting where it left off.
 
