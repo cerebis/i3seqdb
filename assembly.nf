@@ -14,6 +14,10 @@ read_files = Channel.fromPath(params.run_table)
 
 
 process assemble {
+   conda 'bioconda::shovill samtools=1.8'
+  //***** On March 1, 2019, shovill has problems reading the samtools that coming with it.**/
+  //*** So, samtools 1.8 is used instead **/
+  
    cpus 5
    memory '30 GB'
    publishDir params.out_dir, mode: 'copy'
@@ -28,6 +32,9 @@ process assemble {
 
    script:
    """
+   //**On March 1, 2019, the script will not work if the file doesn't exist. **/
+   //** Fix this by removing the samples from the run_table. **/
+  
    filesize=\$(stat -c%s "${r1}")
    if(( filesize > 5000000 )); then
 	   shovill --cpus 4 --outdir `pwd`/asm --R1 ${r1} --R2 ${r2} --trim
